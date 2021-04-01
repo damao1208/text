@@ -1,70 +1,61 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #include <stdio.h>
-#include "game.h"
+#include"game.h"
+
 void menu()
 {
-	printf("*********三子棋*************\n");
-	printf("******1.play 0.exit*********\n");
-	printf("****************************\n");
+	printf("**************扫雷*****************\n");
+	printf("************1.play*****************\n");
+	printf("************0.exit*****************\n");
+	printf("***********************************\n");
+	printf("***********************************\n");
+
 }
 void game()
 {
-	char ret = 0;
-	//数组存放棋盘的信息
-	char board[ROW][COL] = { 0 };//全部空格
-	//初始话棋盘
-	initboard(board,ROW,COL);
-	displayboard(board, ROW, COL); 
-	while (1)
-	{
-		//玩家下棋
-		playermove(board, ROW, COL);
-		displayboard(board,ROW, COL);
-		ret = iswin(board,ROW,COL);
-		if (ret != 'c')
-		{
-			break;
-		}
-		//电脑下棋
-		computemove(board, ROW, COL);
-		displayboard(board, ROW, COL);
-		ret = iswin(board,ROW,COL);
-		if (ret!='c')
-		{
-			break;
-		}
-	}
-	if (ret == '#')
-		printf("电脑赢\n");
-	else if (ret == '*')
-		printf("玩家赢\n");
-	else
-		printf("平局\n");
+	//雷的信息存储
+	//1布置好雷的信息
+	char mine[ROWS][COLS] = { 0 };//11*11 
+	//2排查出雷的信息
+	char show[ROWS][COLS] = { 0 };//11*11
+	initboard(mine, ROWS, COLS ,'0');
+	initboard(show, ROWS, COLS, '*');
+	//打印棋盘
+	//displayboard(mine, ROW, COL);
+	displayboard(show, ROW, COL);
+	//布置雷
+	setmine(mine, ROW, COL);
+	displayboard(mine, ROW, COL);
+	//扫雷
+	findmine(mine,show,ROW,COL);
 }
+
 void text()
 {
-	int input = 0;
+	int input=0;
 	srand((unsigned int)time(NULL));
-	do {
+	do
+	{
 		menu();
 		printf("请选择");
 		scanf("%d", &input);
 		switch (input)
 		{
-		case 1: printf("开始游戏\n");
+		case 1:
 			game();
 			break;
-		case 0: printf("结束游戏\n");
+		case 0:
+			printf("退出游戏");
 			break;
 		default:
-			printf("选择错误\n");
+			printf("选择错误，重新选择");
 			break;
 		}
-
 	} while (input);
 }
 int main()
 {
 	text();
+
 	return 0;
 }

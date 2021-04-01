@@ -1,147 +1,118 @@
-#include "game.h"
 #define _CRT_SECURE_NO_WARNINGS 1
-#include<stdio.h>
-
-char isfull(char board[ROW][COL], int row, int col)
+#include"game.h"
+void initboard(char board[ROWS][COLS], int rows, int cols ,char set)
 {
 	int i;
 	int j;
-	for (i = 0; i < row; i++)
+	for (i = 0; i < rows; i++)
 	{
-		for (j = 0; j < col; j++)
+		for (j = 0; j < cols; j++)
 		{
-			if (board[i][j] == ' ')
-			{
-				return 0;//棋盘没满
-			}
-		}
-	}
-	return 1; //满了
-}
-void initboard(char board[ROW][COL], int row, int col)
-{
-	int i = 0;
-	int j = 0;
-	for (i = 0; i < row; i++)
-	{
-		for (j = 0; j < col; j++)
-		{
-			board[i][j] = ' ';
+			board[i][j] = set;
 		}
 	}
 }
-void displayboard (char board[ROW][COL], int row, int col)
+void displayboard(char board[ROWS][COLS], int row, int col)
 {
-	// A | A | A 
-	//---|---|---
-	// A | A | A 
-	//---|---|---
-	// A | A | A 
 	int i;
 	int j;
-	for (i = 0; i < row; i++)
+	//printf("  ");
+	for (i = 0; i <= col; i++)
 	{
-		for (j = 0; j < col; j++)
+		printf("%d ", i);
+	}
+	printf("\n");
+	for (i = 1; i <= row; i++)
+	{
+			printf("%d ", i);
+		for (j = 1; j <=col; j++)
 		{
-			printf(" %c ",board[i][j]);
-			if(j<col-1)
-			printf("|");
+			printf("%c ", board[i][j]);
 		}
 		printf("\n");
-		if (i < row - 1)
+	}
+}
+void setmine(char board[ROWS][COLS], int row, int col)
+{
+	int count = easy_count;
+	while (count)
+	{
+		int x = rand() % row + 1;
+		int y = rand() % col + 1;
+		if (board[x][y] == '0')
 		{
-			for (j = 0; j < col; j++)
-			{
-				printf("---");
-				if (j < col - 1)
-				{
-					printf("|"); 
-				}
-			}
-			printf("\n");
+			board[x][y] = '1';
+			count--;
 		}
-		
+	}
+}
+char get_mine_count(char mine[ROWS][COLS], int x, int y)
+{
+	return mine[x - 1][y] + mine[x - 1][y - 1] + mine[x][y - 1] + mine[x + 1][y - 1] +
+		mine[x + 1][y] + mine[x + 1][y + 1] + mine[x][y + 1] + mine[x - 1][y + 1] - 8 * '0';
+}
+void excludemine(char mine[ROWS][COLS], char show[ROWS][COLS], int x, int y)
+{
+	int count = get_mine_count(mine, x, y);
+	if (count != 0)
+	{
+		show[x][y] = count + '0';
+	}
+	else
+	{
+		show[x][y] = ' ';
+		if (show[x - 1][y] == '*')
+			excludemine(mine, show, x - 1, y);
+		if (show[x - 1][y - 1] == '*')
+			excludemine(mine, show, x - 1, y - 1);
+		if (show[x][y - 1] == '0')
+			excludemine(mine, show, x, y - 1);
+		if (show[x + 1][y - 1] == '*')
+			excludemine(mine, show, x + 1, y - 1);
+		if (show[x + 1][y] == '*')
+			excludemine(mine, show, x + 1, y);
+		if (show[x + 1][y + 1] == '*')
+			excludemine(mine, show, x + 1, y + 1);
+		if (show[x][y + 1] == '*')
+			excludemine(mine, show, x, y + 1);
+		if (show[x - 1][y + 1] == '*')
+			excludemine(mine, show, x - 1, y + 1);
 
 	}
 }
-void playermove(char board[ROW][COL], int row, int col)
+void findmine(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
 {
 	int x;
 	int y;
-	printf("玩家回合：>");
-	while (1)
+	int win=0;
+	while (win<row*col-easy_count)
 	{
-		printf("请输入要下的坐标");
+		printf("请输入排雷的坐标：.");
 		scanf("%d%d", &x, &y);
 		if (x >= 1 && x <= row && y >= 1 && y <= col)
 		{
-			if (board[x-1][y-1] == ' ')
+			//坐标合法
+			if (mine[x][y] == '1')
 			{
-				board[x - 1][y - 1] = '*';
+				printf("你死了\n");
+				displayboard(mine, row, col);
 				break;
 			}
 			else
 			{
-				printf("坐标被占用");
+				//计算xy坐标旁边有几个雷
+				excludemine(mine, show, x, y);				
+				displayboard(show, row, col);
+				win++;
 			}
 		}
 		else
 		{
-			printf("坐标非法，请重新输入：");
+			printf("输入错误，请重新输入：");
 		}
 	}
-}
-void computemove(char board[ROW][COL], int row, int col)
-{
-	int x = 0;
-	int y = 0;
-
-	while (1)
+	if (win == row * col - easy_count)
 	{
-		printf("电脑走：>\n");
-		x = rand() % row;
-		y = rand() % col;
-		printf("%d %d\n", x, y);
-		if (x >= 0 && x < row && y >= 0 && y < col)
-		{
-			if (board[x][y] == ' ')
-			{
-				board[x][y] = '#';
-				break;
-			}
-		}
+		printf("你赢了\n");
 	}
-
-}
-//玩家赢--*
-//电脑赢--#
-//平局--q
-//继续--c
-char iswin(char board[ROW][COL], int row, int col)
-{
-	int i;
-	//判断行
-	for (i = 0; i < row; i++)
-	{
-		if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][1] != ' ')
-			return board[i][0];
-	}
-	//判断列
-	for (i = 0; i < col; i++)
-	{
-		if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ')
-			return board[0][i];
-	}
-	//判断对角线
-	if (board[0][0] == board[1][1]&& board[1][1] == board[2][2] && board[0][0] != ' ')
-		return board[1][1];
-	if (board[2][0] == board[1][1]&& board[1][1] == board[0][2] && board[1][1] != ' ')
-		return board[1][1];
-	//判断平局
-	if (1 == isfull(board, ROW, COL))
-	{
-		return 'q';
-	}
-	return 'c';
-
 }
